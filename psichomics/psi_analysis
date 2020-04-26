@@ -1,0 +1,110 @@
+#####
+#GTEx data using psichomics
+#Author: André Duarte
+#Date: 30/01/2019
+#####
+BiocManager::install("psichomics")
+# http://bioconductor.org/packages/release/data/annotation/html/alternativeSplicingEvents.hg38.html
+BiocManager::install("alternativeSplicingEvents.hg38") #annotation on hg38 (used to annotate the genome)
+library(psichomics)
+library(alternativeSplicingEvents.hg38)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(limma)
+
+#####
+#the file was retrieved from publicly accessable data from GTEx on 9/1/2020 into my laptop to rey using: scp [my folder] aduarte@rey:[destiny folder] and unzipped it usin gunzip
+#remove first wo lines from gct file using "sed -i '1,2d' file_name"
+#to visualize limited ammount of lines withou loading all the files: head -n5 GTEx_Analysis_2016-01-15_v7_STARv2.4.2a_junctions.gct | awk '{print $1,$2,$3}' (shows 5 lines and 3 columns)
+getwd()
+setwd("~/psi_tens/original files/psicho/")
+dir()
+#ungz using gunzip, extracts the files and removes original
+
+#according to information from Nuno Acostinho (who promptly replied to my queries) I ran "sed -i "3s/Name/junction_id/" GTEx_Analysis_2017-06-05_v8_STARv2.5.3a_junctions.gct" to change the first collumn from Name to junction_id
+gtex <- loadLocalFiles(getwd())
+
+#assign each variable to the correct place
+gtex[[1]]$`Gene expression`[1:5,1:5] #gene expression as in gene X samples
+gtex[[1]]$`Junction quantification`[1:5,1:5] #noticed that the name starts with chr repeated twice, is this going to give me trouble? yes exon junctions X samples
+rownames(gtex[[1]]$`Junction quantification`) <- str_sub(rownames(gtex[[1]]$`Junction quantification`), 4, nchar(rownames(gtex[[1]]$`Junction quantification`)))#correction for duplicated chr
+gtex[[1]]$`Sample metadata`[1:5,1:5] #tissue type, and other usefull information for each sample
+colnames(gtex[[1]]$`Sample metadata`)
+gtex[[1]]$`Clinical data`[1:5,1:3] # attributes for each sample
+rownames(gtex[[1]]$`Clinical data`) #notice that the samples are not uniformely named, some are coded as 5 characters, some as 4 and there is one as k-562
+
+junctionQuant <- gtex[[1]]$`Junction quantification`
+geneExpr      <- gtex[[1]]$`Gene expression`
+sampleInfo    <- gtex[[1]]$`Sample metadata`
+sampleAttr    <- gtex[[1]]$`Clinical data`
+
+#state which annotation the files use. For v8 of GTEx data hg38 is being used.
+hg38 <- loadAnnotation(listSplicingAnnotations()[[3]])
+getSplicingEventTypes() # this annotation detects 8 types of events as stated on the original paper
+hg38$`Skipped exon`[1:20,]
+#calculate psi, requires a filter for the minimun number of reads of an exon junction to be considered
+minReads <- 10
+psi <-  quantifySplicing(hg38, junctionQuant, minReads=minReads) #obtained a data frame with 107413 X 17382 
+dim(psi)
+unique(str_sub(rownames(psi),1,3))
+write.csv2(psi, file="v8_psi.csv") #write the result so I don't need to retake this computational intensive task, generate a huge file (8.5 GB)
+
+#retrieve just female breast samples using the sample metadata and attributes as filters
+sex <- createGroupByAttribute("Sex", sampleAttr)
+tissue <- createGroupByAttribute("Tissue Type (detail)", sampleInfo)
+tissue$`Breast - Mammary Tissue` #480 samples for breast tissue
+sex$Female#326 women
+
+breast_psi <- psi[,(colnames(psi) %in% tissue$`Breast - Mammary Tissue`)]
+View(breast_psi)
+dim(breast_psi)#107413 X 459 samples, lost 21 samples -> samples in attributes file but not on exon junctions.
+female_breast_psi <- tibble(.rows = nrow(breast_psi))
+rownames(female_breast_psi) <- rownames(breast_psi)
+for(i in 1:length(sex$Female)){
+  z <- nchar(sex$Female[i])
+  print(z)
+  for(q in 1:length(colnames(breast_psi))){
+    if(sex$Female[i] == str_sub(colnames(breast_psi)[q],1,z)){
+      female_breast_psi <- cbind(female_breast_psi,breast_psi[,q])
+      colnames(female_breast_psi)[ncol(female_breast_psi)] <- colnames(breast_psi)[q]
+    }
+  }
+}
+
+
+
+dim(female_breast_psi) #167 female breast samples * 107413
+write.csv2(female_breast_psi,"female_breast_psi.csv")
+View(female_breast_psi[1:20,1:5])
+n_NA<-c()
+#remove lines full of NA's
+for(i in 1: nrow(female_breast_psi)){
+  n_NA[i] <- sum(is.na(female_breast_psi[i,]))
+}
+sum(n_NA<=90)
+f_breast_psi <- female_breast_psi[n_NA<=90,]# need at least 1 sample per genotype
+dim(f_breast_psi)#54677 x 167
+write.csv2(f_breast_psi,"f_breast_psi.csv")
+
+bed_file <- data.frame(matrix(nrow = nrow(f_breast_psi), ncol = ncol(f_breast_psi)+4))
+colnames(bed_file) <- c("#Chr","Start","End", "Id",colnames(f_breast_psi))
+bed_file[,5:ncol(bed_file)] <- f_breast_psi
+
+for(i in 1:nrow(f_breast_psi)){
+  z <- str_locate_all(rownames(f_breast_psi)[i],"_")[[1]][,"start"]
+  event <- str_sub(rownames(f_breast_psi)[i], 1L, z[1]-1)
+  bed_file$`#Chr`[i] <- str_sub(rownames(f_breast_psi)[i], z[1]+1, z[2]-1)
+  bed_file$Id[i] <- rownames(f_breast_psi)[i]
+  if(event %in% c("SE", "MXE","ALE","A3SS")){
+    bed_file$Start[i] <- str_sub(rownames(f_breast_psi)[i], z[4]+1, z[5]-1)
+    bed_file$End[i] <- str_sub(rownames(f_breast_psi)[i], z[5]+1, z[6]-1)
+  } else if(event %in% c("AFE", "A5SS")){
+    bed_file$Start[i] <- str_sub(rownames(f_breast_psi)[i], z[3]+1, z[4]-1)
+    bed_file$End[i] <- str_sub(rownames(f_breast_psi)[i], z[4]+1, z[5]-1)
+  }
+  print(paste0(i,"/",nrow(bed_file)))
+}
+bed_file <- bed_file[order(bed_file$`#Chr`, bed_file$Start, bed_file$End),]
+
+write.table(x=bed_file, file = "phenotype.bed", quote = F, row.names = F, sep = "\t", eol = "\n")
