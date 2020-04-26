@@ -1,4 +1,6 @@
 # TensorQTL
+TensorQTL implements phenotype mapping with GPU accelaration for a faster run
+
 It needs 3 different inputs:
 * Phenotype
 * Genotype
