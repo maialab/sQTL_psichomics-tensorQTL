@@ -32,15 +32,12 @@ for(i in 1:length(studies_to_keep)){
 populations <- get_populations()
 pop_loc <- str_locate_all(populations$population,":")
 populations$pop_acr <- rep(NA,nrow(populations))
-i<-1
+
 for(i in 1: nrow(populations)){
   populations$pop_acr[i] <- str_sub(populations$population[i], unlist(pop_loc[[i]][2,2])+1, nchar(populations$population[i]))
 }
 ###
 
-studies@ancestral_groups[studies@ancestral_groups$study_id==studies_to_keep[4],]
-unique(studies@ancestral_groups$ancestral_group)
-dictionary[unique(studies@ancestral_groups$ancestral_group)[[1]]]
 #the following list was made taking into account information available from Table 1, Morales et al 2018 (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5815218/table/Tab1/?report=objectonly)
 dictionary <- list(European = c("CEU","FIN","GBR","IBS","TSI"),
                    Other = c(),
@@ -52,14 +49,11 @@ dictionary <- list(European = c("CEU","FIN","GBR","IBS","TSI"),
                    `Sub-Saharan African` = c("ESN", "LWK", "GWD", "MSL", "MKK", "YRI"),
                    `African unspecified` = c("ACB", "ASW", "ESN", "LWK", "GWD", "MSL", "MKK", "YRI"))
 
-dim(gwas_BC@variants) #987 x7
-gwas_BC@variants$variant_id#some SNPs not named are displayed as genomic positions (chrXX:YYYYY)
-
-
 
 in_LD <- data.frame(matrix(ncol = 6))
-colnames(in_LD)<- c("study","population","variant_1", "variant_2", "r_squared","d_prime")
+colnames(in_LD)<- c("study","population","variant_id1", "variant_id2", "r_squared","d_prime")
 
+#function to retrieve population names to input on ensemblr
 dic_search <- function(study){
   z <- sum(studies@ancestral_groups$study_id==study)
   all_pops <-c()
@@ -71,7 +65,7 @@ dic_search <- function(study){
 }
 
 
-
+#Retrieve all snps in LD for the specific populations
 for(i in 1:length(studies_to_keep)){
   pops <-dic_search(studies_to_keep[i])
   num_pops <- length(pops)
@@ -87,29 +81,30 @@ for(i in 1:length(studies_to_keep)){
   }
 }
 
+#reorganize data
 in_LD <- in_LD[2:nrow(in_LD),c(1,2,8,9,5,6)]
-
 unique(in_LD$variant_id2)#14788 unique snps
 
+#retrieve genomic positions for snps
 gwas_snps <- getBM(attributes = c('refsnp_id','chr_name','chrom_start','allele','minor_allele_freq','synonym_name'),
                    filters = c('snp_filter'),
                    values = list(unique(in_LD$variant_id2)),
                    mart = snpmart)
-
+#load sQTL results and genotype positions and ids
 sQTL <- read.csv("~/psi_tens/permutations.csv", as.is = T)
 positions <- read.delim("~/files_map/geno_pos.txt",as.is = T, sep = " ")
 sQTL$chr <- sQTL$pos <- rep(NA,nrow(sQTL))
-i<-1
-nrow(sQTL)
+
+#cross sQTL snp id with position on genotype
 for(i in 1:nrow(sQTL)){
   posi <- which(sQTL$variant_id[i]==positions$ID)
   sQTL$chr[i] <- str_sub(positions$X.CHROM[posi],4L,nchar(posi))
   sQTL$pos[i] <- positions$POS[posi]
   print(paste0(i,"/",28603))
 }
+
 connection <- data.frame(sQTL=sQTL$phenotype_id, gwas=rep(NA,nrow(sQTL)))
 
-j<-1
 for(j in 1:nrow(sQTL)){
   if(sQTL$pos[j] %in% gwas_snps$chrom_start){
     q <- which(gwas_snps$chrom_start == sQTL$pos[j])
