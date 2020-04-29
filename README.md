@@ -4,8 +4,11 @@ Most studies functionally characterising GWAS loci for breast cancer, have focus
 However, sequence changes can also have potential effects on, for example, splicing, microRNA (miRNA) activity and epigenetic regulation. We have initiated studying genetic variants affecting alternative splicing in breast cancer, by identifying splicing QTLs. However, the best approach to studying cis-regulation is by measuring allelic effects, as such the most powerful method to apply in our studies is Allele Specific Alternative Splicing analysis. Here we aim to extend the in silico analysis that we have been conducting to determine the possible contribution of cis-regulatory SNPs influencing splicing to breast cancer susceptibility. We will (1) identify breast cancer risk variants that are associated with alternative splice isoforms (using bioinformatics tools such as PAIRADISE and ASARP, and publicly available data from GTEx project) and (2) perform in-silico and in-vitro functional validation of the best candidates identified.
 
 This repository has all code developed for this end divided into 3 parts:
+
 1) Psi calculation using psichomics;
+
 2) Mapping using tensorQTL;
+
 3) co-localization analysis with GWAS risk loci using GwasRapidd and Ensemblr.
 
 ## Original Articles:
