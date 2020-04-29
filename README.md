@@ -19,13 +19,13 @@ This repository has all code developed for this end divided into 3 parts:
 
 2) Mapping using tensorQTL;
 
-3) co-localization analysis with GWAS risk loci using Gwasrapidd and Ensemblr.
+3) co-localization analysis with GWAS risk loci using gwasrapidd and ensemblr.
 
 ## Original Articles:
-###[Gwasrapidd](https://github.com/ramiromagno/gwasrapidd)
+###[gwasrapidd](https://github.com/ramiromagno/gwasrapidd)
 Magno, R. and Maia, A.-T. (2019) ‘gwasrapidd: an R package to query, download and wrangle GWAS catalog data’, Bioinformatics. Oxford University Press (OUP). doi: 10.1093/bioinformatics/btz605.
 
-###[Ensemblr](https://github.com/ramiromagno/ensemblr)
+###[ensemblr](https://github.com/ramiromagno/ensemblr)
 Magno, R. Unpublished Work
 
 ### [Psichomics](https://github.com/nuno-agostinho/psichomics)
