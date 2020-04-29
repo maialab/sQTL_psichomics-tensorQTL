@@ -1,7 +1,17 @@
 # Alternative Splicing in Breast Cancer Risk
-Breast cancer has a strong genetic risk component, and recently, cis-regulatory single nucleotide polymorphisms (SNP) have been associated with it. Current efforts are focused on the full understanding of the cis-regulatory mechanisms involved.
-Most studies functionally characterising GWAS loci for breast cancer, have focused solely on the effect of regulatory SNPs (rSNPs) on transcription factor binding at promoters and enhancers.
-However, sequence changes can also have potential effects on, for example, splicing, microRNA (miRNA) activity and epigenetic regulation. We have initiated studying genetic variants affecting alternative splicing in breast cancer, by identifying splicing QTLs. However, the best approach to studying cis-regulation is by measuring allelic effects, as such the most powerful method to apply in our studies is Allele Specific Alternative Splicing analysis. Here we aim to extend the in silico analysis that we have been conducting to determine the possible contribution of cis-regulatory SNPs influencing splicing to breast cancer susceptibility. We will (1) identify breast cancer risk variants that are associated with alternative splice isoforms (using bioinformatics tools such as PAIRADISE and ASARP, and publicly available data from GTEx project) and (2) perform in-silico and in-vitro functional validation of the best candidates identified.
+Breast cancer has a strong genetic risk component, and recently,
+cis-regulatory single nucleotide polymorphisms (SNP) have been
+associated with it. Current efforts are focused on the full
+understanding of the cis-regulatory mechanisms involved.
+Most studies functionally characterising GWAS loci for breast
+cancer, have focused solely on the effect of regulatory SNPs
+(rSNPs) on transcription factor binding at promoters and enhancers.
+However, sequence changes can also have potential effects on, for
+example, splicing, microRNA (miRNA) activity and epigenetic
+regulation. Here we have initiated the study of genetic variants affecting
+alternative splicing in breast cancer, by identifying splicing QTLs which are associated with risk.
+We have used psichomics to quantify alternative splicing isoforms in normal breast RNA-seq data (phs000424.v8.p2 NHGRI GTEx), and mapped the sQTL using tensorQTL. Then we compared the list of significant sQTLs with breast cancer known risk variants, by using gwarapidd to retrieve data from the GWAS Catalog.
+Results presented are preliminary.
 
 This repository has all code developed for this end divided into 3 parts:
 
