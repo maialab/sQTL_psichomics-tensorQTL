@@ -19,7 +19,7 @@ This repository has all code developed for this end divided into 3 parts:
 
 2) Mapping using tensorQTL;
 
-3) co-localization analysis with GWAS risk loci using GwasRapidd and Ensemblr.
+3) co-localization analysis with GWAS risk loci using Gwasrapidd and Ensemblr.
 
 ## Original Articles:
 ###[Gwasrapidd](https://github.com/ramiromagno/gwasrapidd)
