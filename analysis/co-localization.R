@@ -103,23 +103,33 @@ for(i in 1:nrow(sQTL)){
   print(paste0(i,"/",28603))
 }
 
-connection <- data.frame(sQTL=sQTL$phenotype_id, gwas=rep(NA,nrow(sQTL)))
+connection2 <- data.frame(sQTL=sQTL$phenotype_id, gwas=rep(NA,nrow(sQTL)), id=rep(NA,nrow(sQTL)),ld=rep(NA,nrow(sQTL)),pop=rep(NA,nrow(sQTL)),study=rep(NA,nrow(sQTL)))
 
 for(j in 1:nrow(sQTL)){
   if(sQTL$pos[j] %in% gwas_snps$chrom_start){
     q <- which(gwas_snps$chrom_start == sQTL$pos[j])
     if(sQTL$pos[j] %in% gwas_snps$chrom_start[q]){
-      connection$gwas[j] <- gwas_snps$refsnp_id[q]
+      connection2$gwas[j] <- gwas_snps$refsnp_id[q]
+      if(length(which(in_LD2$variant_id2==gwas_snps$refsnp_id[q]))>0){
+        connection2$id[j] <- paste0(in_LD2$variant_id1[which(in_LD2$variant_id2==gwas_snps$refsnp_id[q])], collapse = ",")
+        connection2$ld[j] <- paste0(in_LD2$r_squared[which(in_LD2$variant_id2==gwas_snps$refsnp_id[q])], collapse = ",")
+        connection2$pop[j] <- paste0(in_LD2$population[which(in_LD2$variant_id2==gwas_snps$refsnp_id[q])], collapse = ",")
+        connection2$study[j] <-paste0(in_LD2$study[which(in_LD2$variant_id2==gwas_snps$refsnp_id[q])], collapse = ",") 
+      }
     }else{
-      connection$gwas[j] <- F
+      connection2$gwas[j] <- F
     }
   }else{
-    connection$gwas[j] <- F
+    connection2$gwas[j] <- F
   }
 }  
-coloco <- sQTL[which(connection$gwas != F),]
+paste0(c(in_LD2$r_squared[which(in_LD2$variant_id2==gwas_snps$refsnp_id[q])]), collapse = ",")
+
+coloco <- sQTL[which(connection2$gwas != F),]
+connection2[which(connection2$gwas != F),]
 coloco <- coloco[coloco$pval_perm<0.01,]
 
-gwas_snps[which(gwas_snps$chrom_start %in% coloco$pos),]
+colnames(connection2)[1] <- "phenotype_id"
+coloco <- left_join(coloco, connection2,"phenotype_id")
 
-write.csv(coloco[coloco$pval_perm<0.01,],file = "coloco")
+write.csv(coloco,file = "coloco")
