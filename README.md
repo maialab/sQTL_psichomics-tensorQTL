@@ -38,6 +38,9 @@ Taylor-Weiner, A. et al. (2019) ‘Scaling computational genomics to millions of
 ## Data
 All data is available from [GTEx](https://gtexportal.org/home/).
 
+## Funding
+Support was granted from Fundação para a Ciência e Tecnologia (FCT) via grants POCI-01-0145-FEDER-022184 - ”GenomePT” and PTDC/MED-GEN/30895/2017 - "Intergen".
+
 ## Contact info
 For any questions mail me through
 aarbduarte[at] gmail[dot]com
